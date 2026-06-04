@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Medical School Interview Eligibility</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				font-family:
+					system-ui,
+					-apple-system,
+					sans-serif;
+				max-width: 720px;
+				margin: 0 auto;
+				padding: 2rem 1.25rem 3rem;
+				color: #1a1a1a;
+				line-height: 1.5;
+				background: #f8f9fa;
+			}
+			h1 {
+				margin-top: 0;
+				font-size: 1.6rem;
+			}
+			.intro {
+				color: #444;
+				margin-bottom: 1.5rem;
+			}
+			.panel {
+				background: #fff;
+				border: 1px solid #dde1e6;
+				border-radius: 8px;
+				padding: 1.25rem 1.5rem;
+				margin-bottom: 1.5rem;
+			}
+			label {
+				display: block;
+				margin-top: 1rem;
+				font-weight: 600;
+				font-size: 0.9rem;
+			}
+			label:first-child {
+				margin-top: 0;
+			}
+			input,
+			select {
+				width: 100%;
+				padding: 0.5rem 0.6rem;
+				margin-top: 0.35rem;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+				font-size: 1rem;
+			}
+			fieldset {
+				border: 1px solid #e0e0e0;
+				border-radius: 6px;
+				margin-top: 1rem;
+				padding: 1rem;
+			}
+			legend {
+				font-weight: 600;
+				padding: 0 0.25rem;
+			}
+			.hint {
+				font-size: 0.82rem;
+				color: #666;
+				font-weight: normal;
+			}
+			button {
+				margin-top: 1.25rem;
+				padding: 0.65rem 1.4rem;
+				font-size: 1rem;
+				background: #1a5fb4;
+				color: #fff;
+				border: none;
+				border-radius: 6px;
+				cursor: pointer;
+			}
+			button:hover {
+				background: #154a8f;
+			}
+			.results-heading {
+				margin: 2rem 0 1rem;
+				font-size: 1.25rem;
+				border-top: 2px solid #dde1e6;
+				padding-top: 1.5rem;
+			}
+			.card {
+				background: #fff;
+				border: 1px solid #dde1e6;
+				border-radius: 8px;
+				padding: 1rem 1.25rem;
+				margin-bottom: 1rem;
+			}
+			.card-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				flex-wrap: wrap;
+				margin-bottom: 0.75rem;
+			}
+			.card-header h3 {
+				margin: 0;
+				font-size: 1.1rem;
+			}
+			.badge {
+				font-size: 0.8rem;
+				font-weight: 600;
+				padding: 0.25rem 0.65rem;
+				border-radius: 999px;
+				white-space: nowrap;
+			}
+			.badge-competitive {
+				background: #d4edda;
+				color: #155724;
+			}
+			.badge-eligible {
+				background: #fff3cd;
+				color: #856404;
+			}
+			.badge-borderline {
+				background: #ffe5cc;
+				color: #9a4d00;
+			}
+			.badge-not-eligible {
+				background: #f8d7da;
+				color: #721c24;
+			}
+			.explanation {
+				margin: 0;
+				color: #333;
+				font-size: 0.95rem;
+			}
+            .disclaimer {
+                margin-top: 40px;
+                font-size: 0.9rem;
+                color: #666;
+                text-align: center;
+            }
+		</style>
+	</head>
+	<body>
+		<h1>What Are My Chances? 🩺</h1>
+		<p class="intro">
+			Enter your academic profile to see estimated interview eligibility at Canadian medical schools.
+		</p>
+
+		<div class="panel">
+			<form action="/" method="post">
+				<label for="cgpa">cGPA (0–4.0)</label>
+				<input
+					type="number"
+					id="cgpa"
+					name="cgpa"
+					step="0.01"
+					min="0"
+					max="4"
+					required
+					value="{{ form_values.cgpa if form_values else '' }}"
+				/>
+
+				<label for="gpa_by_year"
+					>GPA by year
+					<span class="hint"
+						>(optional, comma-separated, oldest to newest)</span
+					></label
+				>
+				<input
+					type="text"
+					id="gpa_by_year"
+					name="gpa_by_year"
+					placeholder="e.g. 3.85, 3.90, 3.95, 3.98"
+					value="{{ form_values.gpa_by_year if form_values else '' }}"
+				/>
+
+				<fieldset>
+					<legend>MCAT sections</legend>
+					<label for="cp">CP</label>
+					<input
+						type="number"
+						id="cp"
+						name="cp"
+						min="118"
+						max="132"
+						required
+						value="{{ form_values.cp if form_values else '' }}"
+					/>
+
+					<label for="cars">CARS</label>
+					<input
+						type="number"
+						id="cars"
+						name="cars"
+						min="118"
+						max="132"
+						required
+						value="{{ form_values.cars if form_values else '' }}"
+					/>
+
+					<label for="bb">BB</label>
+					<input
+						type="number"
+						id="bb"
+						name="bb"
+						min="118"
+						max="132"
+						required
+						value="{{ form_values.bb if form_values else '' }}"
+					/>
+
+					<label for="ps">PS</label>
+					<input
+						type="number"
+						id="ps"
+						name="ps"
+						min="118"
+						max="132"
+						required
+						value="{{ form_values.ps if form_values else '' }}"
+					/>
+				</fieldset>
+
+				<label for="casper_quartile">CASPer quartile</label>
+				<select id="casper_quartile" name="casper_quartile" required>
+					{% for q in casper_options %}
+					<option
+							value="{{ q }}"
+	                        {% if form_values and form_values.casper_quartile == q %}
+		                        selected
+	                        {% elif not form_values and q == "Q3" %}
+		                        selected
+	                        {% endif %}
+                        >   
+	                        {{ q }}
+					</option>
+					{% endfor %}
+				</select>
+				<p class="hint">
+					For calculation purposes, Q1→13%, Q2→38%, Q3→63%, Q4→88% percentile equivalent.
+				</p>
+
+				<button type="submit">Check eligibility</button>
+			</form>
+		</div>
+
+		{% if results %}
+		<h2 class="results-heading">Your results</h2>
+		{% for row in results %}
+		<article class="card">
+			<div class="card-header">
+				<h3>{{ row.name }}</h3>
+				<span class="badge badge-{{ row.status | lower | replace(' ', '-') }}"
+					>{{ row.status }}</span
+				>
+			</div>
+			<p class="explanation">{{ row.explanation }}</p>
+		</article>
+		{% endfor %} {% endif %}
+
+        <div class="disclaimer">
+            <p>
+                This tool is an unofficial admissions estimator based on publicly available information and community-reported trends. Admissions processes change over time and involve factors beyond GPA, MCAT, and CASPer. Results should be interpreted as estimates only and not as official admissions advice or predictions.
+            </p>
+        </div>
+	</body>
+</html>
