@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MedChance — Canadian Medical School Interview Estimator</title>
-  <meta name="description" content="Estimate your interview eligibility at Canadian medical schools (UofT, Western, Queen's, Ottawa, TMU, McMaster) based on your GPA, MCAT, and CASPer scores." />
+  <meta name="description" content="Estimate your interview eligibility at Canadian medical schools based on your GPA, MCAT, and CASPer scores." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -217,12 +217,12 @@
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-      box-shadow: 0 0 24px rgba(79,142,247,0.25);
+      box-shadow: none;
     }
 
     .btn-submit:hover {
       background: var(--accent-hover);
-      box-shadow: 0 0 32px rgba(79,142,247,0.4);
+      box-shadow: none;
     }
 
     .btn-submit:active { transform: scale(0.98); }
@@ -488,9 +488,9 @@
 
     <!-- Hero -->
     <header class="hero">
-      <div class="hero-badge">🇨🇦 Canadian Med Schools</div>
-      <h1>Will I Get An Interview?</h1>
-      <p>Enter your academic profile to estimate interview eligibility at six Canadian medical schools.</p>
+      <div style="height: 30px;"></div>
+      <h1>Will I Get An Interview? 🩺</h1>
+      <p>Enter your academic profile to estimate interview eligibility at Canadian medical schools.</p>
     </header>
 
     <!-- Form -->
@@ -507,11 +507,12 @@
           <div class="form-group">
             <label for="casper_quartile">CASPer Quartile</label>
             <select id="casper_quartile" name="casper_quartile" required>
-              <option value="Q1">Q1 — bottom 25%</option>
-              <option value="Q2">Q2 — 25–50%</option>
-              <option value="Q3" selected>Q3 — 50–75%</option>
-              <option value="Q4">Q4 — top 25%</option>
+              <option value="Q1">Q1 (bottom 25%)</option>
+              <option value="Q2">Q2 (25–50%)</option>
+              <option value="Q3" selected>Q3 (50–75%)</option>
+              <option value="Q4">Q4 (top 25%)</option>
             </select>
+            <p class="fieldset-hint">For calculation purposes, Q1 = 13, Q2 = 38, Q3 = 63, Q4 = 88 percentile equivalent.</p>
           </div>
 
           <div class="form-group full">
@@ -522,7 +523,7 @@
           <!-- MCAT -->
           <div class="fieldset-box">
             <div class="fieldset-title">MCAT Sections</div>
-            <p class="fieldset-hint">Haven't written yet? Try 127 in each section — roughly the average among accepted Canadian applicants.</p>
+            <p class="fieldset-hint">Haven't written yet? Try 127 in each section, roughly the average among accepted Canadian applicants.</p>
             <div class="mcat-grid">
               <div class="form-group">
                 <label for="cp">CP</label>
@@ -562,7 +563,7 @@
 
     <!-- Email capture -->
     <div class="email-capture">
-      <h3>Want updates on new tools and guides? 🩺</h3>
+      <h3>Want updates on new tools and guides? 🇨🇦</h3>
       <p>If you found this useful, drop your email to get future tools and updates.</p>
       <form id="email-form">
         <div class="email-row">
