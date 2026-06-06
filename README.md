@@ -1,6 +1,6 @@
 # MedChance 🩺
 
-An unofficial interview eligibility estimator for Canadian medical schools — UofT, Western, Queen's, Ottawa, TMU, and McMaster.
+An unofficial interview eligibility estimator for Canadian medical schools.
 
 Enter your cGPA, MCAT scores, and CASPer quartile to see how your profile stacks up against each school's published screening criteria.
 
