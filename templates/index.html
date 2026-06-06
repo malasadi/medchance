@@ -113,19 +113,19 @@
 				border-radius: 999px;
 				white-space: nowrap;
 			}
-			.badge-competitive {
+			.badge-likely-competitive {
 				background: #d4edda;
 				color: #155724;
 			}
-			.badge-eligible {
-				background: #fff3cd;
-				color: #856404;
+			.badge-likely-eligible {
+				background: #d4edda;
+				color: #155724;
 			}
-			.badge-borderline {
+			.badge-likely-borderline {
 				background: #ffe5cc;
 				color: #9a4d00;
 			}
-			.badge-not-eligible {
+			.badge-likely-not-eligible {
 				background: #f8d7da;
 				color: #721c24;
 			}
@@ -140,10 +140,86 @@
                 color: #666;
                 text-align: center;
             }
+			.help-text {
+				margin: 0 0 1rem;
+				font-size: 0.9rem;
+				color: #666;
+			}
+
+			.email-capture {
+				margin-top: 30px;
+				padding: 20px;
+				border: 1px solid #eee;
+				border-radius: 10px;
+				background: #fff;
+				text-align: center;
+			}
+
+			.email-capture input {
+				background: #fff;
+				border: 1px solid #dde1e6;
+				border-radius: 8px;
+				padding: 1.25rem 1.5rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.email-capture button {
+				padding: 10px 15px;
+				cursor: pointer;
+			}
+
+			.email-subtext {
+				font-size: 0.9rem;
+				color: #666;
+			}
+			.success-message {
+				color: green;
+				margin-top: 10px;
+			}
+
+			.spacer {
+    			height: 20px;
+			}
+			input[type="email"] {
+				padding: 10px;
+				width: 60%;
+				max-width: 300px;
+				border: 1px solid #ccc;
+				border-radius: 6px;
+			}
+
+			#emailBadge {
+				display: inline-block;
+				margin-left: 10px;
+				padding: 6px 10px;
+				border-radius: 999px;
+				font-size: 0.8rem;
+				font-weight: 500;
+				opacity: 0;
+				transform: translateY(4px);
+				transition: all 0.25s ease;
+			}
+
+			/* success state */
+			#emailBadge.show {
+				opacity: 1;
+				transform: translateY(0);
+				background: #e6f9ed;
+				color: #1a7f37;
+				border: 1px solid #b7ebc6;
+			}
+
+			/* optional error state */
+			#emailBadge.error {
+				background: #ffecec;
+				color: #b42318;
+				border: 1px solid #ffcccc;
+			}
+
 		</style>
 	</head>
 	<body>
-		<h1>What Are My Chances? 🩺</h1>
+		<h1>Will I Get An Interview? 🩺</h1>
 		<p class="intro">
 			Enter your academic profile to see estimated interview eligibility at Canadian medical schools.
 		</p>
@@ -178,6 +254,11 @@
 
 				<fieldset>
 					<legend>MCAT sections</legend>
+
+					<p class="help-text">
+						Haven't taken the MCAT yet? Try entering 127 in each section, which is roughly the average score among accepted Canadian medical school applicants.
+					</p>
+
 					<label for="cp">CP</label>
 					<input
 						type="number"
@@ -260,6 +341,28 @@
 		</article>
 		{% endfor %} {% endif %}
 
+		<div class="spacer"></div>
+
+<div class="email-capture">
+    <h3>Want updates on new med school tools and guides? 🇨🇦</h3>
+    <p class="email-subtext">
+        If you found this useful, drop your email to get future tools and updates!
+    </p>
+
+<form id="emailForm">
+    <input 
+        type="email" 
+        name="email" 
+        placeholder="Enter your email" 
+        required
+    >
+    <button type="submit">Submit</button>
+
+    <span id="emailBadge"></span>
+</form>
+
+</div>
+
         <div class="disclaimer">
             <p>
                 This tool is an unofficial admissions estimator based on publicly available information and community-reported trends. Admissions processes change over time and involve factors beyond GPA, MCAT, and CASPer. Results should be interpreted as estimates only and not as official admissions advice or predictions.
@@ -267,3 +370,29 @@
         </div>
 	</body>
 </html>
+
+
+
+<script>
+document.getElementById("emailForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const badge = document.getElementById("emailBadge");
+    const formData = new FormData(this);
+
+    const res = await fetch("/subscribe", {
+        method: "POST",
+        body: formData
+    });
+
+    if (res.ok) {
+        badge.textContent = "✔ Subscribed";
+        badge.className = "show";
+    } else {
+        badge.textContent = "Error";
+        badge.className = "error show";
+    }
+
+    this.reset();
+});
+</script>

@@ -118,7 +118,7 @@ def uoft(applicant):
 
     if gpa_ok and mcat_ok:
         return {
-            "status": "Eligible",
+            "status": "Likely eligible",
             "explanation": (
                 f"Your cGPA of {gpa:.2f} and MCAT profile meet UofT's published academic "
                 "screening thresholds, so you are academically competitive at this stage. "
@@ -139,7 +139,7 @@ def uoft(applicant):
             reasons.append("MCAT does not meet the rule (all sections ≥ 125, with at most one at 124)")
 
     return {
-        "status": "Not eligible",
+        "status": "Likely not eligible",
         "explanation": (
             "You do not meet UofT's academic screen based on the following: "
             + "; ".join(reasons)
@@ -164,7 +164,7 @@ def western(applicant):
     if gpa_ok and mcat_ok:
         years_text = " and ".join(f"{y:.2f}" for y in best_two)
         return {
-            "status": "Eligible",
+            "status": "Likely eligible",
             "explanation": (
                 f"Both of your best two years ({years_text}) are at or above 3.70, and all MCAT "
                 "sections are ≥ 126, so you pass Western's first academic filter. "
@@ -185,7 +185,7 @@ def western(applicant):
         failures.append("MCAT section(s) below 126: " + ", ".join(failed_mcat))
 
     return {
-        "status": "Not eligible",
+        "status": "Likely not eligible",
         "explanation": (
             "You do not pass Western's initial screen because "
             + "; ".join(failures)
@@ -200,17 +200,17 @@ def queens(applicant):
     gpa, _, _ = process_gpa(applicant)
     gpa_ok = gpa >= 3.0
     mcat_ok = all(score >= 125 for score in mcat_values(applicant))
-    casper_ok = applicant["casper_percentile"] >= 50
+    casper_ok = applicant["casper_percentile"] >= 35
 
     if gpa_ok and mcat_ok and casper_ok:
         return {
-            "status": "Eligible",
+            "status": "Likely eligible",
             "explanation": (
                 f"Your cGPA ({gpa:.2f}), MCAT (all sections ≥ 125), and CASPer meet Queen's minimum "
                 "requirements, so you are placed into their interview lottery pool. "
                 "Meeting cutoffs does not guarantee an interview: historically, only about 13% of "
                 "eligible applicants receive an interview invitation. "
-                "Strong ABS and experiences can help but the lottery adds substantial uncertainty."
+                "Strong experiences can help with the interview but the lottery adds substantial uncertainty."
             ),
         }
 
@@ -226,11 +226,11 @@ def queens(applicant):
         missing.append("MCAT below 125: " + ", ".join(low))
     if not casper_ok:
         missing.append(
-            f"CASPer equivalent below 50th percentile (your mapped score: {applicant['casper_percentile']})"
+            f"CASPer equivalent below 35th percentile (your mapped score: {applicant['casper_percentile']})"
         )
 
     return {
-        "status": "Not eligible",
+        "status": "Likely not eligible",
         "explanation": (
             "You are not eligible for Queen's interview lottery because "
             + "; ".join(missing)
@@ -252,7 +252,7 @@ def ottawa(applicant):
 
     if gpa_ok and casper_ok:
         return {
-            "status": "Eligible",
+            "status": "Likely eligible",
             "explanation": (
                 f"Your last-three-years GPA ({last3_gpa:.2f}) and CASPer meet Ottawa's academic screen. "
                 "Eligible files move to holistic file review and ABS screening; many competitive applicants "
@@ -270,7 +270,7 @@ def ottawa(applicant):
         )
 
     return {
-        "status": "Not eligible",
+        "status": "Likely not eligible",
         "explanation": (
             "You do not meet Ottawa's initial requirements: "
             + "; ".join(missing)
@@ -291,7 +291,7 @@ def tmu(applicant):
 
     if gpa_ok:
         return {
-            "status": "Eligible",
+            "status": "Likely eligible",
             "explanation": (
                 f"Your cGPA of {gpa:.2f} meets TMU's academic cutoff (≥ 3.5); no MCAT is required at this stage. "
                 "After the GPA screen, applications receive holistic review of essays and ABS. "
@@ -300,7 +300,7 @@ def tmu(applicant):
         }
 
     return {
-        "status": "Not eligible",
+        "status": "Likely not eligible",
         "explanation": (
             f"Your cGPA of {gpa:.2f} is below TMU's 3.5 minimum, so you do not pass the academic cutoff. "
             "Files below this threshold are not advanced to essay and ABS review. "
@@ -318,7 +318,7 @@ def mcmaster(applicant):
 
     if result == "Yes":
         return {
-            "status": "Competitive",
+            "status": "Likely competitive",
             "explanation": (
                 f"McMaster's formula uses your cGPA ({gpa:.2f}), CARS ({cars}), and CASPer "
                 f"(mapped percentile {casper}) together. With CARS {cars}, the model requires roughly "
@@ -328,7 +328,7 @@ def mcmaster(applicant):
         }
 
     return {
-        "status": "Not eligible",
+        "status": "Likely not eligible",
         "explanation": (
             f"McMaster's formula uses your cGPA ({gpa:.2f}), CARS ({cars}), and CASPer "
             f"(mapped percentile {casper}) together. With CARS {cars}, the model requires roughly "

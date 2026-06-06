@@ -1,8 +1,12 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, flash, get_flashed_messages
 
 from engine import evaluate_applicant
 
+import csv
+import os
+
 app = Flask(__name__)
+app.secret_key = "dev-secret-key"
 
 SCHOOL_LABELS = {
     "uoft": "UofT",
@@ -97,5 +101,22 @@ def index():
     )
 
 
+import requests
+
+GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNGH8fV31HIVc9B0iph1JXHbYLc3ZWy08WzcRlkF5wRK9VbzD559qNYRjp394Gh-9lfw/exec"
+
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    email = request.form.get("email")
+
+    requests.post(GOOGLE_SCRIPT_URL, json={
+        "email": email
+    })
+
+    return "ok"
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
+
