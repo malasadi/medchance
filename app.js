@@ -6,6 +6,77 @@
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNGH8fV31HIVc9B0iph1JXHbYLc3ZWy08WzcRlkF5wRK9VbzD559qNYRjp394Gh-9lfw/exec";
 
 // ─────────────────────────────────────────────
+//  Validation
+// ─────────────────────────────────────────────
+
+const REQUIRED_FIELDS = [
+  { id: "cgpa",  label: "cGPA",  min: 0,   max: 4,   step: 0.01 },
+  { id: "cp",   label: "CP",   min: 118, max: 132, step: 1 },
+  { id: "cars", label: "CARS", min: 118, max: 132, step: 1 },
+  { id: "bb",   label: "BB",   min: 118, max: 132, step: 1 },
+  { id: "ps",   label: "PS",   min: 118, max: 132, step: 1 },
+];
+
+function setFieldError(el, msg) {
+  el.classList.add("field-error");
+  let errEl = el.parentElement.querySelector(".field-error-msg");
+  if (!errEl) {
+    errEl = document.createElement("span");
+    errEl.className = "field-error-msg";
+    el.parentElement.appendChild(errEl);
+  }
+  errEl.textContent = msg;
+}
+
+function clearFieldError(el) {
+  el.classList.remove("field-error");
+  const errEl = el.parentElement.querySelector(".field-error-msg");
+  if (errEl) errEl.remove();
+}
+
+function validateForm() {
+  let valid = true;
+  let firstBad = null;
+
+  // Clear MCAT box-level error first
+  const mcatBox = document.querySelector(".fieldset-box");
+
+  for (const field of REQUIRED_FIELDS) {
+    const el = document.getElementById(field.id);
+    const val = el.value.trim();
+
+    if (val === "" || isNaN(Number(val))) {
+      setFieldError(el, `${field.label} is required.`);
+      valid = false;
+      if (!firstBad) firstBad = el;
+    } else {
+      const num = Number(val);
+      if (num < field.min || num > field.max) {
+        setFieldError(el, `${field.label} must be ${field.min}–${field.max}.`);
+        valid = false;
+        if (!firstBad) firstBad = el;
+      } else {
+        clearFieldError(el);
+      }
+    }
+  }
+
+  // Highlight MCAT fieldset-box if any MCAT field failed
+  const mcatIds = ["cp", "cars", "bb", "ps"];
+  const anyMcatError = mcatIds.some(id => document.getElementById(id).classList.contains("field-error"));
+  if (mcatBox) {
+    mcatBox.classList.toggle("field-error", anyMcatError);
+  }
+
+  if (firstBad) {
+    firstBad.scrollIntoView({ behavior: "smooth", block: "center" });
+    firstBad.focus();
+  }
+
+  return valid;
+}
+
+// ─────────────────────────────────────────────
 //  Form helpers
 // ─────────────────────────────────────────────
 
@@ -83,6 +154,9 @@ function maybeSubmitEmail(email) {
 
 document.getElementById("eligibility-form").addEventListener("submit", function (e) {
   e.preventDefault();
+
+  if (!validateForm()) return;
+
   const btn = document.getElementById("submit-btn");
   btn.classList.add("loading");
 
