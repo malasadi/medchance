@@ -345,108 +345,12 @@
       line-height: 1.65;
     }
 
-    /* ── Email capture ── */
-    .email-capture {
-      background: linear-gradient(135deg, var(--surface) 0%, #1a1e2e 100%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      margin-top: 2rem;
-      text-align: center;
-    }
-
-    .email-capture h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .email-capture p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .email-row {
-      display: flex;
-      gap: 0.6rem;
-      max-width: 420px;
-      margin: 0 auto;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .email-row input[type="email"] {
-      flex: 1 1 200px;
-    }
-
-    .btn-email {
-      padding: 0.65rem 1.25rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      font-family: inherit;
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      white-space: nowrap;
-    }
-
-    .btn-email:hover {
-      background: var(--border-light);
-      border-color: var(--accent);
-    }
-
-    .btn-email:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .btn-email {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-    }
-
-    .btn-email-spinner {
-      display: none;
-      width: 13px;
-      height: 13px;
-      border: 2px solid rgba(255,255,255,0.25);
-      border-top-color: var(--text);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      flex-shrink: 0;
-    }
-
-    #email-badge {
-      display: inline-block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 0.35rem 0.9rem;
-      border-radius: 999px;
-      margin-top: 0.75rem;
-      opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 0.25s, transform 0.25s;
-    }
-
-    #email-badge.show-ok {
-      opacity: 1;
-      transform: translateY(0);
-      background: var(--green-bg);
-      color: var(--green);
-      border: 1px solid var(--green-border);
-    }
-
-    #email-badge.show-err {
-      opacity: 1;
-      transform: translateY(0);
-      background: var(--red-bg);
-      color: var(--red);
-      border: 1px solid var(--red-border);
+    /* ── Email divider in form ── */
+    .email-divider {
+      grid-column: 1 / -1;
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0.5rem 0;
     }
 
     /* ── Disclaimer ── */
@@ -544,6 +448,13 @@
             </div>
           </div>
 
+          <!-- Email (last question) -->
+          <hr class="email-divider" />
+          <div class="form-group full">
+            <label for="email-input">Email <span class="hint">— get updates on new tools and guides</span></label>
+            <input type="email" id="email-input" name="email" placeholder="you@example.com" />
+          </div>
+
         </div>
 
         <button type="submit" class="btn-submit" id="submit-btn">
@@ -561,21 +472,7 @@
       <div id="results-list"></div>
     </section>
 
-    <!-- Email capture -->
-    <div class="email-capture">
-      <h3>Want updates on new tools and guides? 🇨🇦</h3>
-      <p>If you found this useful, drop your email to get future tools and updates.</p>
-      <form id="email-form">
-        <div class="email-row">
-          <input type="email" id="email-input" placeholder="you@example.com" required />
-          <button type="submit" class="btn-email" id="notify-btn">
-            <span class="btn-email-spinner" id="notify-spinner"></span>
-            <span id="notify-text">Notify Me</span>
-          </button>
-        </div>
-        <div id="email-badge"></div>
-      </form>
-    </div>
+
 
     <!-- Disclaimer -->
     <p class="disclaimer">
@@ -884,6 +781,9 @@
       const btn = document.getElementById("submit-btn");
       btn.classList.add("loading");
 
+      // Fire email silently if provided
+      maybeSubmitEmail(document.getElementById("email-input").value);
+
       // Small delay for perceived responsiveness
       setTimeout(() => {
         try {
@@ -900,45 +800,17 @@
     });
 
     // ─────────────────────────────────────────────
-    //  Email subscribe
+    //  Silent email subscribe (fires on eligibility submit if email entered)
     // ─────────────────────────────────────────────
-    document.getElementById("email-form").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const badge   = document.getElementById("email-badge");
-      const btn     = document.getElementById("notify-btn");
-      const spinner = document.getElementById("notify-spinner");
-      const btnText = document.getElementById("notify-text");
-      const email   = document.getElementById("email-input").value;
-
-      // Reset badge
-      badge.className = "";
-      badge.textContent = "";
-
-      // Loading state
-      btn.disabled = true;
-      spinner.style.display = "inline-block";
-      btnText.textContent = "Sending…";
-
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",          // Google Script requires no-cors
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        badge.textContent = "✔ You're on the list!";
-        badge.className = "show-ok";
-        this.reset();
-      } catch {
-        badge.textContent = "Something went wrong — try again.";
-        badge.className = "show-err";
-      } finally {
-        // Restore button
-        btn.disabled = false;
-        spinner.style.display = "none";
-        btnText.textContent = "Notify Me";
-      }
-    });
+    function maybeSubmitEmail(email) {
+      if (!email || !email.trim()) return;
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      }).catch(() => {});
+    }
   </script>
 </body>
 </html>
