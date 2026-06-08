@@ -1,0 +1,235 @@
+// ─────────────────────────────────────────────
+//  Engine — pure eligibility calculation logic
+//  Ported from engine.py; no DOM dependencies.
+// ─────────────────────────────────────────────
+
+const MCAT_KEYS = ["cp", "cars", "bb", "ps"];
+const MCAT_LABELS = { cp: "CP", cars: "CARS", bb: "BB", ps: "PS" };
+
+const CASPER_QUARTILE_MAP = { Q1: 13, Q2: 38, Q3: 63, Q4: 88 };
+
+// ── GPA utilities ──
+
+function processGpa(applicant) {
+  const cgpa = applicant.cgpa;
+  const years = applicant.gpa_by_year;
+  if (years && years.length > 0) {
+    const sorted = [...years].sort((a, b) => b - a);
+    const best2 = sorted.slice(0, 2).reduce((s, v) => s + v, 0) / Math.min(2, sorted.length);
+    const recent = years.slice(-3);
+    const last3 = recent.reduce((s, v) => s + v, 0) / recent.length;
+    return { cgpa, best2, last3 };
+  }
+  return { cgpa, best2: cgpa, last3: cgpa };
+}
+
+function westernBestTwoYears(applicant) {
+  const years = applicant.gpa_by_year;
+  if (years && years.length > 0) return [...years].sort((a, b) => b - a).slice(0, 2);
+  return [applicant.cgpa];
+}
+
+function westernGpaEligible(applicant) {
+  return westernBestTwoYears(applicant).every(y => y >= 3.70);
+}
+
+// ── MCAT utilities ──
+
+function mcatValues(applicant) {
+  return MCAT_KEYS.map(k => applicant.mcat_sections[k]);
+}
+
+function uoftMcatEligible(applicant) {
+  const vals = mcatValues(applicant);
+  if (vals.every(s => s >= 125)) return true;
+  const below = vals.filter(s => s < 125);
+  return below.length === 1 && below[0] >= 124;
+}
+
+function uoftMcatFailures(applicant) {
+  const sections = applicant.mcat_sections;
+  const below125 = MCAT_KEYS.filter(k => sections[k] < 125);
+  return MCAT_KEYS.reduce((arr, key) => {
+    const score = sections[key];
+    if (score < 124) {
+      arr.push(`${MCAT_LABELS[key]} (${score})`);
+    } else if (score === 124 && below125.length > 1) {
+      arr.push(`${MCAT_LABELS[key]} (${score})`);
+    }
+    return arr;
+  }, []);
+}
+
+// ── McMaster formula ──
+
+const CARS_BASELINE = { 132: 40, 131: 51, 130: 62, 129: 77, 128: 85, 127: 91, 126: 96, 125: 100 };
+
+function mcmasterRequiredCasper(gpa, cars) {
+  const clampedGpa = Math.max(0, Math.min(4.0, gpa));
+  const base = CARS_BASELINE[cars] ?? 100;
+  return Math.round(Math.min(100, base + 50 * (4.0 - clampedGpa)));
+}
+
+function checkInterviewInvite(gpa, cars, casperPercentile) {
+  const clampedGpa = Math.max(0, Math.min(4.0, gpa));
+  const clampedCasper = Math.max(0, Math.min(100, casperPercentile));
+  const base = CARS_BASELINE[cars] ?? 100;
+  const required = Math.min(100, base + 50 * (4.0 - clampedGpa));
+  return clampedCasper >= required ? "Yes" : "No";
+}
+
+// ── School evaluators ──
+
+function evalUoft(applicant) {
+  const { cgpa } = processGpa(applicant);
+  const gpaOk = cgpa >= 3.85;
+  const mcatOk = uoftMcatEligible(applicant);
+
+  if (gpaOk && mcatOk) return {
+    status: "Likely eligible",
+    type: "eligible",
+    explanation: `Your cGPA of ${cgpa.toFixed(2)} and MCAT profile meet UofT's published academic screening thresholds, so you are academically competitive at this stage. This means you have your foot in the door for further review, not a guaranteed interview. UofT's final decisions depend heavily on your autobiographical sketch (ABS) and essays, where non-academic strengths and fit are weighed after the initial screen.`
+  };
+
+  const reasons = [];
+  if (!gpaOk) reasons.push(`cGPA ${cgpa.toFixed(2)} is below 3.85, which is sometimes quoted as the minimum GPA possible for an interview (3.89 is another number sometimes quoted)`);
+  if (!mcatOk) {
+    const failed = uoftMcatFailures(applicant);
+    if (failed.length) reasons.push("MCAT section(s) below threshold: " + failed.join(", "));
+    else reasons.push("MCAT does not meet the rule (all sections ≥ 125, with at most one at 124)");
+  }
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `You do not meet UofT's academic screen based on the following: ${reasons.join("; ")}. Without being in the competitive GPA range or meeting the MCAT cutoffs, your file is unlikely to advance regardless of ABS or essays. Strengthen the listed area(s) before reapplying or targeting UofT.`
+  };
+}
+
+function evalWestern(applicant) {
+  const gpaOk = westernGpaEligible(applicant);
+  const bestTwo = westernBestTwoYears(applicant);
+  const sections = applicant.mcat_sections;
+  const failedMcat = MCAT_KEYS.filter(k => sections[k] < 126).map(k => `${MCAT_LABELS[k]} (${sections[k]})`);
+  const mcatOk = failedMcat.length === 0;
+
+  if (gpaOk && mcatOk) {
+    const yearsText = bestTwo.map(y => y.toFixed(2)).join(" and ");
+    return {
+      status: "Likely eligible",
+      type: "eligible",
+      explanation: `Both of your best two years (${yearsText}) are at or above 3.70, and all MCAT sections are ≥ 126, so you pass Western's first academic filter. Western uses a multi-stage system: eligible applicants next complete the Kira Talent online video interview. Kira performance strongly influences who is invited to a traditional panel interview, so meeting cutoffs is necessary but not sufficient.`
+    };
+  }
+
+  const failures = [];
+  if (!gpaOk) {
+    const weakYears = bestTwo.filter(y => y < 3.70).map(y => y.toFixed(2));
+    failures.push(`GPA: each of your best two years must be ≥ 3.70 individually; year(s) below cutoff: ${weakYears.join(", ") || "requirement not met"}`);
+  }
+  if (!mcatOk) failures.push("MCAT section(s) below 126: " + failedMcat.join(", "));
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `You do not pass Western's initial screen because ${failures.join("; ")}. Western is a multi-stage filter: without clearing these academic gates, you will not proceed to Kira Talent or panel interviews. Address the failed criterion(s) before reapplying.`
+  };
+}
+
+function evalQueens(applicant) {
+  const { cgpa } = processGpa(applicant);
+  const gpaOk = cgpa >= 3.0;
+  const mcatOk = mcatValues(applicant).every(s => s >= 125);
+  const casperOk = applicant.casper_percentile >= 35;
+
+  if (gpaOk && mcatOk && casperOk) return {
+    status: "Likely eligible",
+    type: "eligible",
+    explanation: `Your cGPA (${cgpa.toFixed(2)}), MCAT (all sections ≥ 125), and CASPer meet Queen's minimum requirements, so you are placed into their interview lottery pool. Meeting cutoffs does not guarantee an interview: historically, only about 13% of eligible applicants receive an invitation. Strong experiences can help with the interview but the lottery adds substantial uncertainty.`
+  };
+
+  const missing = [];
+  if (!gpaOk) missing.push(`cGPA ${cgpa.toFixed(2)} is below 3.0`);
+  if (!mcatOk) {
+    const low = MCAT_KEYS.filter(k => applicant.mcat_sections[k] < 125).map(k => `${MCAT_LABELS[k]} (${applicant.mcat_sections[k]})`);
+    missing.push("MCAT below 125: " + low.join(", "));
+  }
+  if (!casperOk) missing.push(`CASPer equivalent below 35th percentile (your mapped score: ${applicant.casper_percentile})`);
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `You are not eligible for Queen's interview lottery because ${missing.join("; ")}. All three components (GPA, MCAT, and CASPer) must be satisfied to enter the pool.`
+  };
+}
+
+function evalOttawa(applicant) {
+  const { last3 } = processGpa(applicant);
+  const gpaOk = last3 >= 3.8;
+  const casperOk = applicant.casper_percentile >= 75;
+  const regionNote = "Note: approximately 70% of seats are reserved for Ottawa-region applicants; this does not affect your eligibility calculation here.";
+
+  if (gpaOk && casperOk) return {
+    status: "Likely eligible",
+    type: "eligible",
+    explanation: `Your last-three-years GPA (${last3.toFixed(2)}) and CASPer meet Ottawa's academic screen. Eligible files move to holistic file review and ABS screening; many competitive applicants still do not receive interviews after review. ${regionNote}`
+  };
+
+  const missing = [];
+  if (!gpaOk) missing.push(`last-three-years GPA ${last3.toFixed(2)} is below 3.8 (no known accepted cases with a lower GPA)`);
+  if (!casperOk) missing.push(`CASPer below 75th percentile equivalent (your mapped score: ${applicant.casper_percentile})`);
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `You do not meet Ottawa's initial requirements: ${missing.join("; ")}. ${regionNote}`
+  };
+}
+
+function evalTmu(applicant) {
+  const { cgpa } = processGpa(applicant);
+  const gpaOk = cgpa >= 3.5;
+  const peelNote = "Note: TMU has stated preference for applicants with ties to Brampton/Peel; this is informational only and is not used in this calculation.";
+
+  if (gpaOk) return {
+    status: "Likely eligible",
+    type: "eligible",
+    explanation: `Your cGPA of ${cgpa.toFixed(2)} meets TMU's academic cutoff (≥ 3.5); no MCAT is required at this stage. After the GPA screen, applications receive holistic review of essays and ABS. ${peelNote}`
+  };
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `Your cGPA of ${cgpa.toFixed(2)} is below TMU's 3.5 minimum, so you do not pass the academic cutoff. Files below this threshold are not advanced to essay and ABS review. ${peelNote}`
+  };
+}
+
+function evalMcmaster(applicant) {
+  const { cgpa } = processGpa(applicant);
+  const cars = applicant.mcat_sections.cars;
+  const casper = applicant.casper_percentile;
+  const required = mcmasterRequiredCasper(cgpa, cars);
+  const result = checkInterviewInvite(cgpa, cars, casper);
+
+  if (result === "Yes") return {
+    status: "Likely competitive",
+    type: "competitive",
+    explanation: `McMaster's formula uses your cGPA (${cgpa.toFixed(2)}), CARS (${cars}), and CASPer (mapped percentile ${casper}) together. With CARS ${cars}, the model requires roughly ${required} CASPer equivalent; your score meets or exceeds that, so the formula output is favourable. This result is based solely on the published GPA–CARS–CASPer interaction, not holistic file review.`
+  };
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `McMaster's formula uses your cGPA (${cgpa.toFixed(2)}), CARS (${cars}), and CASPer (mapped percentile ${casper}) together. With CARS ${cars}, the model requires roughly ${required} CASPer equivalent; your score is below that threshold, so the formula output is unfavourable. This outcome follows the published calculation only, without additional speculation.`
+  };
+}
+
+function evaluateApplicant(applicant) {
+  return [
+    { name: "UofT",     key: "uoft",     result: evalUoft(applicant) },
+    { name: "Western",  key: "western",  result: evalWestern(applicant) },
+    { name: "Queen's",  key: "queens",   result: evalQueens(applicant) },
+    { name: "Ottawa",   key: "ottawa",   result: evalOttawa(applicant) },
+    { name: "TMU",      key: "tmu",      result: evalTmu(applicant) },
+    { name: "McMaster", key: "mcmaster", result: evalMcmaster(applicant) },
+  ];
+}
