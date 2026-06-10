@@ -509,7 +509,7 @@ select {
 
 /* ── Disclaimer ── */
 .disclaimer {
-  margin-top: 3rem;
+  margin-top: 2rem;
   font-size: 0.78rem;
   color: var(--text-dim);
   text-align: center;
