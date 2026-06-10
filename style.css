@@ -340,8 +340,14 @@ select {
 }
 
 @media (max-width: 600px) {
+
+  .modal {
+    align-items: flex-start;
+    padding-top: 100px;
+  }
+
   .modal-content {
-    top: 20%;
+    top: 5%;
     transform: none;
     max-height: 70vh;
     overflow-y: auto;

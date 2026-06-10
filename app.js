@@ -179,7 +179,7 @@ eligibilityForm.addEventListener("submit", function (e) {
     modalEmailInput.value = "";
     emailError.style.display = "none";
     modalEmailInput.focus();
-  }, 500);
+  }, 2000);
 });
 
 // Validate email format (basic)
