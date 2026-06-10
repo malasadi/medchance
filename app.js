@@ -10,11 +10,11 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNGH8fV31HIV
 // ─────────────────────────────────────────────
 
 const REQUIRED_FIELDS = [
-  { id: "cgpa",  label: "cGPA",  min: 0,   max: 4,   step: 0.01 },
-  { id: "cp",   label: "CP",   min: 118, max: 132, step: 1 },
+  { id: "cgpa", label: "cGPA", min: 0, max: 4, step: 0.01 },
+  { id: "cp", label: "CP", min: 118, max: 132, step: 1 },
   { id: "cars", label: "CARS", min: 118, max: 132, step: 1 },
-  { id: "bb",   label: "BB",   min: 118, max: 132, step: 1 },
-  { id: "ps",   label: "PS",   min: 118, max: 132, step: 1 },
+  { id: "bb", label: "BB", min: 118, max: 132, step: 1 },
+  { id: "ps", label: "PS", min: 118, max: 132, step: 1 },
 ];
 
 function setFieldError(el, msg) {
@@ -90,10 +90,10 @@ function buildApplicant(form) {
   const applicant = {
     cgpa: parseFloat(data.get("cgpa")),
     mcat_sections: {
-      cp:   parseInt(data.get("cp"),   10),
+      cp: parseInt(data.get("cp"), 10),
       cars: parseInt(data.get("cars"), 10),
-      bb:   parseInt(data.get("bb"),   10),
-      ps:   parseInt(data.get("ps"),   10),
+      bb: parseInt(data.get("bb"), 10),
+      ps: parseInt(data.get("ps"), 10),
     },
     casper_percentile: CASPER_QUARTILE_MAP[data.get("casper_quartile")],
   };
@@ -145,7 +145,7 @@ function maybeSubmitEmail(email) {
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: email.trim() }),
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 // ─────────────────────────────────────────────

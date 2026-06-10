@@ -339,6 +339,18 @@ select {
   display: none;
 }
 
+@media (max-width: 600px) {
+  .modal-content {
+    top: 20%;
+    transform: none;
+    max-height: 70vh;
+    overflow-y: auto;
+    width: calc(100% - 32px);
+    margin: 0 auto;
+  }
+
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
