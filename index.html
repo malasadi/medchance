@@ -72,11 +72,7 @@
           </div>
 
           <!-- Email (last question) -->
-          <hr class="email-divider" />
-          <div class="form-group full">
-            <label for="email-input">Email <span class="hint">— get updates on new tools and guides</span></label>
-            <input type="email" id="email-input" name="email" placeholder="you@example.com" />
-          </div>
+
 
         </div>
 
@@ -85,6 +81,23 @@
           <span class="btn-text">Check Eligibility →</span>
         </button>
       </form>
+    </div>
+
+    <!-- Email Modal -->
+    <div id="email-modal" class="modal" aria-modal="true" role="dialog" aria-hidden="true">
+    <div class="modal-content">
+      <h4>Your results are ready </h4>
+
+      <p>Enter your email - I'll send you a copy so you can check again any time. 📥</p>
+
+      <p>You'll also know about new med school tools and guides like this one. Only if you want them. No spam. 😊</p>
+        <form id="email-form" novalidate>
+          <label for="modal-email-input" class="visually-hidden">Email</label>
+          <input type="email" id="modal-email-input" name="email" placeholder="you@example.com" required autocomplete="email" />
+          <div id="email-error" class="field-error-msg" role="alert" aria-live="polite" style="display: none;"></div>
+          <button type="submit" class="btn-submit">View my results</button>
+        </form>
+      </div>
     </div>
 
     <!-- Results -->

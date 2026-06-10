@@ -152,28 +152,81 @@ function maybeSubmitEmail(email) {
 //  Form submit
 // ─────────────────────────────────────────────
 
-document.getElementById("eligibility-form").addEventListener("submit", function (e) {
+const eligibilityForm = document.getElementById("eligibility-form");
+const emailModal = document.getElementById("email-modal");
+const emailForm = document.getElementById("email-form");
+const modalEmailInput = document.getElementById("modal-email-input");
+const emailError = document.getElementById("email-error");
+const submitBtn = document.getElementById("submit-btn");
+
+eligibilityForm.addEventListener("submit", function (e) {
   e.preventDefault();
 
+  // Validate only the academic fields, excluding email
   if (!validateForm()) return;
 
-  const btn = document.getElementById("submit-btn");
-  btn.classList.add("loading");
+  // Show loading spinner on button
+  submitBtn.classList.add("loading");
 
-  // Fire email silently if provided
-  maybeSubmitEmail(document.getElementById("email-input").value);
+  // Delay before showing email modal
+  setTimeout(() => {
+    // Hide loading spinner
+    submitBtn.classList.remove("loading");
 
-  // Small delay for perceived responsiveness
+    // Show modal for email input
+    emailModal.setAttribute("aria-hidden", "false");
+    emailModal.style.display = "flex";
+    modalEmailInput.value = "";
+    emailError.style.display = "none";
+    modalEmailInput.focus();
+  }, 500);
+});
+
+// Validate email format (basic)
+function isValidEmail(email) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
+}
+
+emailForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const email = modalEmailInput.value.trim();
+  if (!email) {
+    emailError.textContent = "Email is required.";
+    emailError.style.display = "block";
+    modalEmailInput.focus();
+    return;
+  }
+  if (!isValidEmail(email)) {
+    emailError.textContent = "Please enter a valid email address.";
+    emailError.style.display = "block";
+    modalEmailInput.focus();
+    return;
+  }
+
+  // Hide modal
+  emailModal.setAttribute("aria-hidden", "true");
+  emailModal.style.display = "none";
+
+  // Show loading spinner
+  submitBtn.classList.add("loading");
+
+  // Submit email silently
+  maybeSubmitEmail(email);
+
+  // Calculate and display results after a short delay
   setTimeout(() => {
     try {
-      const applicant = buildApplicant(this);
+      const applicant = buildApplicant(eligibilityForm);
       const schools = evaluateApplicant(applicant);
       renderResults(schools);
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please check your inputs and try again.");
     } finally {
-      btn.classList.remove("loading");
+      submitBtn.classList.remove("loading");
     }
   }, 280);
 });
+
