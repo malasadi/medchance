@@ -191,6 +191,25 @@ eligibilityForm.addEventListener("submit", function (e) {
   // Validate only the academic fields, excluding email
   if (!validateForm()) return;
 
+  // Check if email has been collected before
+  if (localStorage.getItem("emailCollected") === "true") {
+    // Immediately calculate and display results without popup
+    submitBtn.classList.add("loading");
+    setTimeout(() => {
+      try {
+        const applicant = buildApplicant(eligibilityForm);
+        const schools = evaluateApplicant(applicant);
+        renderResults(schools, applicant.province);
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please check your inputs and try again.");
+      } finally {
+        submitBtn.classList.remove("loading");
+      }
+    }, 280);
+    return;
+  }
+
   // Show loading spinner on button
   submitBtn.classList.add("loading");
 
@@ -207,6 +226,8 @@ eligibilityForm.addEventListener("submit", function (e) {
     modalEmailInput.focus();
   }, 2000);
 });
+
+
 
 // Validate email format (basic)
 function isValidEmail(email) {
@@ -235,6 +256,9 @@ emailForm.addEventListener("submit", function (e) {
   emailModal.setAttribute("aria-hidden", "true");
   emailModal.style.display = "none";
 
+  // Mark email as collected in localStorage
+  localStorage.setItem("emailCollected", "true");
+
   // Show loading spinner
   submitBtn.classList.add("loading");
 
@@ -255,4 +279,6 @@ emailForm.addEventListener("submit", function (e) {
     }
   }, 280);
 });
+
+
 
