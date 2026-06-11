@@ -131,6 +131,12 @@ function renderResults(schools, province = "") {
       }
     }
 
+    if(name === "UBC") {
+      if(province !== "British Columbia") {
+        warning += `<p class=\"warning-warning\">90% of seats are reserved for applicants from BC.</p>`;
+      }
+    }
+
     return `
     <article class=\"result-card ${result.type}\">
       <div class=\"result-card-header\">

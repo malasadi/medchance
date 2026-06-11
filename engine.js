@@ -223,13 +223,54 @@ function evalMcmaster(applicant) {
   };
 }
 
+function adjustedUBCGpa(applicant) {
+  const years = applicant.gpa_by_year;
+  if (years && years.length >= 4) {
+    // drop the lowest year and average the rest
+    const sorted = [...years].sort((a, b) => a - b);
+    const dropped = sorted.slice(1); // drop lowest
+    const avg = dropped.reduce((sum, val) => sum + val, 0) / dropped.length;
+    return avg;
+  }
+  return applicant.cgpa;
+}
+
+function evalUBC(applicant) {
+  const gpa = adjustedUBCGpa(applicant);
+  const mcatSum = Object.values(applicant.mcat_sections).reduce((a, b) => a + b, 0);
+
+  const gpaOk = gpa >= 3.85;
+  const mcatOk = mcatSum >= 505;
+
+  let explanation = `The official UBC cutoffs are 75% for BC residents and 85% for out-of-province applicants, but realistically a minimum GPA of 87% or 3.85 is needed for a realistic chance. The official MCAT minimum is 496 but 505 or more is recommended.`;
+
+  if (gpaOk && mcatOk) {
+    explanation += ` While your academic stats are within range, your non-academic quality (NAQ) section will be very important in your ability to get an interview.`;
+  }
+
+  if (gpaOk && mcatOk) {
+    return {
+      status: "Likely eligible",
+      type: "eligible",
+      explanation
+    };
+  }
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation
+  };
+}
+
 function evaluateApplicant(applicant) {
   return [
-    { name: "UofT",     key: "uoft",     result: evalUoft(applicant) },
-    { name: "Western",  key: "western",  result: evalWestern(applicant) },
-    { name: "Queen's",  key: "queens",   result: evalQueens(applicant) },
-    { name: "Ottawa",   key: "ottawa",   result: evalOttawa(applicant) },
-    { name: "TMU",      key: "tmu",      result: evalTmu(applicant) },
+    { name: "UofT", key: "uoft", result: evalUoft(applicant) },
+    { name: "Western", key: "western", result: evalWestern(applicant) },
+    { name: "Queen's", key: "queens", result: evalQueens(applicant) },
+    { name: "Ottawa", key: "ottawa", result: evalOttawa(applicant) },
+    { name: "TMU", key: "tmu", result: evalTmu(applicant) },
     { name: "McMaster", key: "mcmaster", result: evalMcmaster(applicant) },
+    { name: "UBC", key: "ubc", result: evalUBC(applicant) },
   ];
 }
