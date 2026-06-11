@@ -550,3 +550,9 @@ body::before {
   position: relative;
   z-index: 1;
 }
+
+.warning-warning {
+  font-size: 0.88rem;
+  color: rgb(221, 114, 0);
+  line-height: 1.65;
+}

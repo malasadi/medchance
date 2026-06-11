@@ -96,6 +96,7 @@ function buildApplicant(form) {
       ps: parseInt(data.get("ps"), 10),
     },
     casper_percentile: CASPER_QUARTILE_MAP[data.get("casper_quartile")],
+    province: data.get("province") ? data.get("province").trim() : ""
   };
   const years = parseGpaByYear(data.get("gpa_by_year"));
   if (years) applicant.gpa_by_year = years;
@@ -111,17 +112,36 @@ function badgeClass(type) {
   return "badge-not-eligible";
 }
 
-function renderResults(schools) {
+const ONTARIO_SCHOOLS = new Set(["UofT", "Western", "Queen's", "Ottawa", "TMU", "McMaster"]);
+
+function renderResults(schools, province = "") {
   const list = document.getElementById("results-list");
-  list.innerHTML = schools.map(({ name, result }) => `
-    <article class="result-card ${result.type}">
-      <div class="result-card-header">
+  list.innerHTML = schools.map(({ name, result }) => {
+    let warning = "";
+
+    if (ONTARIO_SCHOOLS.has(name)) {
+      if (province !== "Ontario") {
+        warning += `<p class=\"warning-warning\">This school gives strong preference to Ontario residents (approx. 95% seats).</p>`;
+      }
+      if (name === "Ottawa") {
+        warning += `<p class=\"warning-warning\">70% of seats are reserved for applicants from the Ottawa and surrounding regions.</p>`;
+      }
+      if (name === "TMU") {
+        warning += `<p class=\"warning-warning\">Strong preference is given for applicants from the Peel/Brampton regions.</p>`;
+      }
+    }
+
+    return `
+    <article class=\"result-card ${result.type}\">
+      <div class=\"result-card-header\">
         <h3>${name}</h3>
-        <span class="badge ${badgeClass(result.type)}">${result.status}</span>
+        <span class=\"badge ${badgeClass(result.type)}\">${result.status}</span>
       </div>
-      <p class="explanation">${result.explanation}</p>
+      <p class=\"explanation\">${result.explanation}</p>
+      ${warning}
     </article>
-  `).join("");
+  `;
+  }).join("");
 
   const section = document.getElementById("results-section");
   section.style.display = "block";
@@ -220,7 +240,7 @@ emailForm.addEventListener("submit", function (e) {
     try {
       const applicant = buildApplicant(eligibilityForm);
       const schools = evaluateApplicant(applicant);
-      renderResults(schools);
+      renderResults(schools, applicant.province);
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please check your inputs and try again.");
