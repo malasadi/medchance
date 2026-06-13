@@ -174,14 +174,14 @@ function maybeSubmitEmail(email, applicant) {
 
   // If applicant data is provided and appears complete, add extended fields
   if (applicant &&
-      applicant.province &&
-      typeof applicant.cgpa === 'number' && !isNaN(applicant.cgpa) &&
-      applicant.casper_percentile !== undefined &&
-      applicant.mcat_sections &&
-      typeof applicant.mcat_sections.cp === 'number' &&
-      typeof applicant.mcat_sections.cars === 'number' &&
-      typeof applicant.mcat_sections.bb === 'number' &&
-      typeof applicant.mcat_sections.ps === 'number') {
+    applicant.province &&
+    typeof applicant.cgpa === 'number' && !isNaN(applicant.cgpa) &&
+    applicant.casper_percentile !== undefined &&
+    applicant.mcat_sections &&
+    typeof applicant.mcat_sections.cp === 'number' &&
+    typeof applicant.mcat_sections.cars === 'number' &&
+    typeof applicant.mcat_sections.bb === 'number' &&
+    typeof applicant.mcat_sections.ps === 'number') {
     payload.province = applicant.province;
     payload.cGPA = applicant.cgpa;
     // Map back CASPer quartile string since app sends percentile internally
@@ -191,9 +191,7 @@ function maybeSubmitEmail(email, applicant) {
     payload.mcat_cars = applicant.mcat_sections.cars;
     payload.mcat_bb = applicant.mcat_sections.bb;
     payload.mcat_ps = applicant.mcat_sections.ps;
-    if(applicant.intent_stage) {
-      payload.intent_stage = applicant.intent_stage;
-    }
+    payload.intent_stage = applicant.intent_stage || "";
   }
 
   fetch(GOOGLE_SCRIPT_URL, {
