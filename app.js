@@ -96,7 +96,8 @@ function buildApplicant(form) {
       ps: parseInt(data.get("ps"), 10),
     },
     casper_percentile: CASPER_QUARTILE_MAP[data.get("casper_quartile")],
-    province: data.get("province") ? data.get("province").trim() : ""
+    province: data.get("province") ? data.get("province").trim() : "",
+    graduate_degree: data.get("graduate_degree") || "none"
   };
   const years = parseGpaByYear(data.get("gpa_by_year"));
   if (years) applicant.gpa_by_year = years;

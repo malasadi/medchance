@@ -47,7 +47,7 @@
           </div>
 
           <div class="form-group">
-            <label for="cgpa">cGPA <span class="hint">(0.00 – 4.00)</span></label>
+            <label for="cgpa">cGPA <span class="hint">(0.00 – 4.00, exclude graduate grades)</span></label>
             <input type="number" id="cgpa" name="cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.87" required />
           </div>
 
@@ -89,9 +89,19 @@
                 <input type="number" id="ps" name="ps" min="118" max="132" placeholder="127" required />
               </div>
             </div>
-          </div>
+           </div>
 
-          <!-- Email (last question) -->
+           <div class="form-group">
+             <label for="graduate_degree">Any Graduate Degrees?</label>
+             <select id="graduate_degree" name="graduate_degree">
+               <option value="none" selected>None</option>
+               <option value="course">Course-based Master's</option>
+               <option value="thesis">Thesis-based Master's</option>
+               <option value="phd">PhD</option>
+             </select>
+           </div>
+
+           <!-- Email (last question) -->
 
 
         </div>

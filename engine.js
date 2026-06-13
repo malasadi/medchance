@@ -81,29 +81,49 @@ function checkInterviewInvite(gpa, cars, casperPercentile) {
 // ── School evaluators ──
 
 function evalUoft(applicant) {
-  const { cgpa } = processGpa(applicant);
-  const gpaOk = cgpa >= 3.85;
+  const { cgpa, graduate_degree } = applicant;
+
+  // Determine minimum GPA based on graduate degree
+  let minGpa = 3.85;
+  let gradNote = "";
+
+  if (graduate_degree === "thesis") {
+    minGpa = 3.75;
+    gradNote = ". Since you have a thesis-based Master's, the minimum GPA requirement is around 3.75";
+  } else if (graduate_degree === "phd") {
+    minGpa = 3.65;
+    gradNote = ". Since you have a PhD, the minimum GPA requirement is around 3.65";
+  }
+
+  const gpaOk = cgpa >= minGpa;
   const mcatOk = uoftMcatEligible(applicant);
 
   if (gpaOk && mcatOk) return {
     status: "Likely eligible",
     type: "eligible",
-    explanation: `Your cGPA of ${cgpa.toFixed(2)} and MCAT profile meet UofT's published academic screening thresholds, so you are academically competitive at this stage. This means you have your foot in the door for further review, not a guaranteed interview. UofT's final decisions depend heavily on your autobiographical sketch (ABS) and essays, where non-academic strengths and fit are weighed after the initial screen.`
+    explanation: `Your cGPA of ${cgpa.toFixed(2)} and MCAT profile meet UofT's academic screening thresholds${gradNote}, so you are academically competitive at this stage. This means you have your foot in the door for further review, not a guaranteed interview. UofT's final decisions depend heavily on your autobiographical sketch (ABS) and essays, where non-academic strengths and fit are weighed after the initial screen.`
   };
 
   const reasons = [];
-  if (!gpaOk) reasons.push(`cGPA ${cgpa.toFixed(2)} is below 3.85, which is sometimes quoted as the minimum GPA possible for an interview (3.89 is another number sometimes quoted)`);
+  if (!gpaOk) reasons.push(`cGPA ${cgpa.toFixed(2)} is below ${minGpa.toFixed(2)}, which is sometimes quoted as the minimum GPA possible for an interview (3.89 is another number sometimes quoted)`);
   if (!mcatOk) {
     const failed = uoftMcatFailures(applicant);
     if (failed.length) reasons.push("MCAT section(s) below threshold: " + failed.join(", "));
-    else reasons.push("MCAT does not meet the rule (all sections ≥ 125, with at most one at 124)");
+    else reasons.push("MCAT does not meet the rule (all sections 65 125, with at most one at 124)");
   }
   return {
     status: "Likely not eligible",
     type: "not-eligible",
-    explanation: `You do not meet UofT's academic screen based on the following: ${reasons.join("; ")}. Without being in the competitive GPA range or meeting the MCAT cutoffs, your file is unlikely to advance regardless of ABS or essays. Strengthen the listed area(s) before reapplying or targeting UofT.`
+    explanation: `You do not meet UofT's academic screen based on the following: ${reasons.join("; ")}. Without being in the competitive GPA range or meeting the MCAT cutoffs, your file is unlikely to advance regardless of ABS or essays. Strengthen the listed area(s) before reapplying or targeting UofT.${gradNote}`
   };
 }
+
+module.exports = {
+  evalUoft,
+  // add other exports as needed
+};
+
+
 
 function evalWestern(applicant) {
   const gpaOk = westernGpaEligible(applicant);
@@ -166,12 +186,12 @@ function evalOttawa(applicant) {
   const { last3 } = processGpa(applicant);
   const gpaOk = last3 >= 3.8;
   const casperOk = applicant.casper_percentile >= 75;
-  const regionNote = "Note: approximately 70% of seats are reserved for Ottawa-region applicants; this does not affect your eligibility calculation here.";
+  const regionNote = "Note: approximately 70% of seats are reserved for Ottawa-region applicants.";
 
   if (gpaOk && casperOk) return {
     status: "Likely eligible",
     type: "eligible",
-    explanation: `Your last-three-years GPA (${last3.toFixed(2)}) and CASPer meet Ottawa's academic screen. Eligible files move to holistic file review and ABS screening; many competitive applicants still do not receive interviews after review. ${regionNote}`
+    explanation: `Your last-three-years GPA (${last3.toFixed(2)}) and CASPer meet Ottawa's academic screen. Eligible files move to holistic file review and ABS screening; many competitive applicants still do not receive interviews after review.`
   };
 
   const missing = [];
@@ -181,7 +201,7 @@ function evalOttawa(applicant) {
   return {
     status: "Likely not eligible",
     type: "not-eligible",
-    explanation: `You do not meet Ottawa's initial requirements: ${missing.join("; ")}. ${regionNote}`
+    explanation: `You do not meet Ottawa's initial requirements: ${missing.join("; ")}.`
   };
 }
 
@@ -193,13 +213,13 @@ function evalTmu(applicant) {
   if (gpaOk) return {
     status: "Likely eligible",
     type: "eligible",
-    explanation: `Your cGPA of ${cgpa.toFixed(2)} meets TMU's academic cutoff (≥ 3.5); no MCAT is required at this stage. After the GPA screen, applications receive holistic review of essays and ABS. ${peelNote}`
+    explanation: `Your cGPA of ${cgpa.toFixed(2)} meets TMU's academic cutoff (≥ 3.5); no MCAT is required at this stage. After the GPA screen, applications receive holistic review of essays and ABS.`
   };
 
   return {
     status: "Likely not eligible",
     type: "not-eligible",
-    explanation: `Your cGPA of ${cgpa.toFixed(2)} is below TMU's 3.5 minimum, so you do not pass the academic cutoff. Files below this threshold are not advanced to essay and ABS review. ${peelNote}`
+    explanation: `Your cGPA of ${cgpa.toFixed(2)} is below TMU's 3.5 minimum, so you do not pass the academic cutoff. Files below this threshold are not advanced to essay and ABS review.`
   };
 }
 
