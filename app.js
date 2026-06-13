@@ -3,7 +3,7 @@
 //  Depends on: engine.js (must be loaded first)
 // ─────────────────────────────────────────────
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwD2tCNJE-94P7VzwM8IYKstHK9oZzb7oeso5bA1J9ZBCijjf18X-wPA0kxkVbPfjz9A/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVeF6D9muzkSJKh4l3oSAQg4t6dj2-khcnzjswB5NR28FDc8rFgkbu6xMAPGDF1gY9xw/exec";
 
 // ─────────────────────────────────────────────
 //  Validation
@@ -97,7 +97,8 @@ function buildApplicant(form) {
     },
     casper_percentile: CASPER_QUARTILE_MAP[data.get("casper_quartile")],
     province: data.get("province") ? data.get("province").trim() : "",
-    graduate_degree: data.get("graduate_degree") || "none"
+    graduate_degree: data.get("graduate_degree") || "none",
+    intent_stage: data.get("intent_stage") || "planning"
   };
   const years = parseGpaByYear(data.get("gpa_by_year"));
   if (years) applicant.gpa_by_year = years;
@@ -173,14 +174,14 @@ function maybeSubmitEmail(email, applicant) {
 
   // If applicant data is provided and appears complete, add extended fields
   if (applicant &&
-    applicant.province &&
-    typeof applicant.cgpa === 'number' && !isNaN(applicant.cgpa) &&
-    applicant.casper_percentile !== undefined &&
-    applicant.mcat_sections &&
-    typeof applicant.mcat_sections.cp === 'number' &&
-    typeof applicant.mcat_sections.cars === 'number' &&
-    typeof applicant.mcat_sections.bb === 'number' &&
-    typeof applicant.mcat_sections.ps === 'number') {
+      applicant.province &&
+      typeof applicant.cgpa === 'number' && !isNaN(applicant.cgpa) &&
+      applicant.casper_percentile !== undefined &&
+      applicant.mcat_sections &&
+      typeof applicant.mcat_sections.cp === 'number' &&
+      typeof applicant.mcat_sections.cars === 'number' &&
+      typeof applicant.mcat_sections.bb === 'number' &&
+      typeof applicant.mcat_sections.ps === 'number') {
     payload.province = applicant.province;
     payload.cGPA = applicant.cgpa;
     // Map back CASPer quartile string since app sends percentile internally
@@ -190,6 +191,9 @@ function maybeSubmitEmail(email, applicant) {
     payload.mcat_cars = applicant.mcat_sections.cars;
     payload.mcat_bb = applicant.mcat_sections.bb;
     payload.mcat_ps = applicant.mcat_sections.ps;
+    if(applicant.intent_stage) {
+      payload.intent_stage = applicant.intent_stage;
+    }
   }
 
   fetch(GOOGLE_SCRIPT_URL, {
