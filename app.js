@@ -3,7 +3,7 @@
 //  Depends on: engine.js (must be loaded first)
 // ─────────────────────────────────────────────
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNGH8fV31HIVc9B0iph1JXHbYLc3ZWy08WzcRlkF5wRK9VbzD559qNYRjp394Gh-9lfw/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwD2tCNJE-94P7VzwM8IYKstHK9oZzb7oeso5bA1J9ZBCijjf18X-wPA0kxkVbPfjz9A/exec";
 
 // ─────────────────────────────────────────────
 //  Validation
@@ -131,8 +131,8 @@ function renderResults(schools, province = "") {
       }
     }
 
-    if(name === "UBC") {
-      if(province !== "British Columbia") {
+    if (name === "UBC") {
+      if (province !== "British Columbia") {
         warning += `<p class=\"warning-warning\">90% of seats are reserved for applicants from BC.</p>`;
       }
     }
@@ -164,13 +164,38 @@ function renderResults(schools, province = "") {
 //  Silent email subscribe (fires on eligibility submit if email entered)
 // ─────────────────────────────────────────────
 
-function maybeSubmitEmail(email) {
+function maybeSubmitEmail(email, applicant) {
   if (!email || !email.trim()) return;
+
+  // Compose payload with at least email
+  const payload = { email: email.trim() };
+
+  // If applicant data is provided and appears complete, add extended fields
+  if (applicant &&
+    applicant.province &&
+    typeof applicant.cgpa === 'number' && !isNaN(applicant.cgpa) &&
+    applicant.casper_percentile !== undefined &&
+    applicant.mcat_sections &&
+    typeof applicant.mcat_sections.cp === 'number' &&
+    typeof applicant.mcat_sections.cars === 'number' &&
+    typeof applicant.mcat_sections.bb === 'number' &&
+    typeof applicant.mcat_sections.ps === 'number') {
+    payload.province = applicant.province;
+    payload.cGPA = applicant.cgpa;
+    // Map back CASPer quartile string since app sends percentile internally
+    // We don't have original quartile here so send percentile
+    payload.casper_quartile = applicant.casper_percentile;
+    payload.mcat_cp = applicant.mcat_sections.cp;
+    payload.mcat_cars = applicant.mcat_sections.cars;
+    payload.mcat_bb = applicant.mcat_sections.bb;
+    payload.mcat_ps = applicant.mcat_sections.ps;
+  }
+
   fetch(GOOGLE_SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email.trim() }),
+    body: JSON.stringify(payload),
   }).catch(() => { });
 }
 
@@ -262,8 +287,11 @@ emailForm.addEventListener("submit", function (e) {
   // Show loading spinner
   submitBtn.classList.add("loading");
 
-  // Submit email silently
-  maybeSubmitEmail(email);
+  // Build applicant from form data
+  const applicant = buildApplicant(eligibilityForm);
+
+  // Submit email silently with applicant details if possible
+  maybeSubmitEmail(email, applicant);
 
   // Calculate and display results after a short delay
   setTimeout(() => {
