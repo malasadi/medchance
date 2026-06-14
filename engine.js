@@ -283,6 +283,47 @@ function evalUBC(applicant) {
   };
 }
 
+function evalUCalgary(applicant) {
+  const { cgpa, province, mcat_sections } = applicant;
+  const provinceLow = province ? province.trim().toLowerCase() === "alberta" : false;
+
+  // Cutoffs based on province
+  const minGpa = provinceLow ? 3.7 : 3.88;
+  const minCars = provinceLow ? 126 : 128;
+  const carsScore = mcat_sections.cars;
+
+  const gpaOk = cgpa >= minGpa;
+  const carsOk = carsScore >= minCars;
+
+  let regionalNote = `<p class="warning-warning">UCalgary reserves roughly 85% of its seats for Alberta residents.</p>`;
+  let type = 'not-eligible';
+  let status = 'Likely not eligible';
+
+  if (gpaOk && carsOk) {
+    status = 'Likely eligible';
+    type = 'eligible';
+  }
+
+  const minMsg = provinceLow
+    ? `The minimum GPA and CARS scores required for a realistic chance at UCalgary for in-province applicants are ${minGpa.toFixed(2)} and ${minCars}, respectively, which are higher than the officially reported cutoffs.`
+    : `The minimum GPA and CARS scores required for a realistic chance at UCalgary for out-of-province applicants are ${minGpa.toFixed(2)} and ${minCars}, respectively, which are higher than the officially reported cutoffs.`;
+
+  let explanation = minMsg + ' ';
+
+  if (!gpaOk || !carsOk) {
+    const reasons = [];
+    if (!gpaOk) reasons.push(`cGPA ${cgpa.toFixed(2)} is below ${minGpa.toFixed(2)}`);
+    if (!carsOk) reasons.push(`CARS ${carsScore} is below ${minCars}`);
+    explanation += reasons.join('; ') + '. ';
+  }
+
+  explanation += regionalNote;
+
+  return { status, type, explanation };
+}
+
+
+
 function evaluateApplicant(applicant) {
   return [
     { name: "UofT", key: "uoft", result: evalUoft(applicant) },
@@ -292,5 +333,333 @@ function evaluateApplicant(applicant) {
     { name: "TMU", key: "tmu", result: evalTmu(applicant) },
     { name: "McMaster", key: "mcmaster", result: evalMcmaster(applicant) },
     { name: "UBC", key: "ubc", result: evalUBC(applicant) },
+    { name: "UCalgary", key: "ucalgary", result: evalUCalgary(applicant) },
   ];
 }
+
+module.exports = {
+  evalUoft,
+  evalUCalgary,
+};
+
+// Exports for other existing functions if needed
+// Add them here as necessary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Add exports of other evaluation functions here if needed
+
+
+
