@@ -239,7 +239,7 @@ function evalMcmaster(applicant) {
   return {
     status: "Likely not eligible",
     type: "not-eligible",
-    explanation: `McMaster's formula uses your cGPA (${cgpa.toFixed(2)}), CARS (${cars}), and CASPer (mapped percentile ${casper}) together. With CARS ${cars}, the model requires roughly ${required} CASPer equivalent; your score is below that threshold, so the formula output is unfavourable. This outcome follows the published calculation only, without additional speculation.`
+    explanation: `McMaster's formula uses your cGPA (${cgpa.toFixed(2)}), CARS (${cars}), and CASPer (mapped percentile ${casper}) together. With CARS ${cars}, the model requires roughly ${required} CASPer equivalent; your score is below that threshold, so the formula output is unfavourable.`
   };
 }
 
@@ -295,7 +295,7 @@ function evalUCalgary(applicant) {
   const gpaOk = cgpa >= minGpa;
   const carsOk = carsScore >= minCars;
 
-  let regionalNote = `<p class="warning-warning">UCalgary reserves roughly 85% of its seats for Alberta residents.</p>`;
+  let regionalNote = `UCalgary reserves roughly 85% of its seats for Alberta residents.`;
   let type = 'not-eligible';
   let status = 'Likely not eligible';
 

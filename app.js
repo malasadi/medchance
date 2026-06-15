@@ -139,6 +139,12 @@ function renderResults(schools, province = "") {
       }
     }
 
+    if (name === "UCalgary") {
+      if (province !== "Alberta") {
+        warning += `<p class="warning-warning">UCalgary reserves roughly 85% of its seats for Alberta residents.</p>`;
+      }
+    }
+
     return `
     <article class=\"result-card ${result.type}\">
       <div class=\"result-card-header\">
@@ -166,14 +172,13 @@ function renderResults(schools, province = "") {
 //  Silent email subscribe (fires on eligibility submit if email entered)
 // ─────────────────────────────────────────────
 
-function maybeSubmitEmail(email, applicant) {
+function maybeSubmitEmail(email, applicant, results) {
   if (!email || !email.trim()) return;
 
-  // Compose payload with at least email
   const payload = { email: email.trim() };
 
-  // If applicant data is provided and appears complete, add extended fields
-  if (applicant &&
+  if (
+    applicant &&
     applicant.province &&
     typeof applicant.cgpa === 'number' && !isNaN(applicant.cgpa) &&
     applicant.casper_percentile !== undefined &&
@@ -181,11 +186,10 @@ function maybeSubmitEmail(email, applicant) {
     typeof applicant.mcat_sections.cp === 'number' &&
     typeof applicant.mcat_sections.cars === 'number' &&
     typeof applicant.mcat_sections.bb === 'number' &&
-    typeof applicant.mcat_sections.ps === 'number') {
+    typeof applicant.mcat_sections.ps === 'number'
+  ) {
     payload.province = applicant.province;
     payload.cGPA = applicant.cgpa;
-    // Map back CASPer quartile string since app sends percentile internally
-    // We don't have original quartile here so send percentile
     payload.casper_quartile = applicant.casper_percentile;
     payload.mcat_cp = applicant.mcat_sections.cp;
     payload.mcat_cars = applicant.mcat_sections.cars;
@@ -194,12 +198,62 @@ function maybeSubmitEmail(email, applicant) {
     payload.intent_stage = applicant.intent_stage || "";
   }
 
+  // =========================
+  // 1. SEND TO GOOGLE SHEETS (existing, unchanged)
+  // =========================
   fetch(GOOGLE_SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   }).catch(() => { });
+
+  // =========================
+  // 2. SEND TO RESEND WORKER (NEW)
+  // =========================
+  const resultsHtml = formatResultsForEmail(results);
+
+  fetch("https://medchance-emails.mohammeasadi.workers.dev", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email: email.trim(),
+      results: resultsHtml
+    })
+  })
+    .then(() => {
+      console.log("Email sent via Worker");
+    })
+    .catch((err) => {
+      console.error("Worker email failed:", err);
+    });
+}
+
+function formatResultsForEmail(results) {
+  if (!results || !Array.isArray(results)) return "";
+
+  function escapeHtml(text) {
+    if (!text) return "";
+    return text.replace(/[&<>"']/g, function (char) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char];
+    });
+  }
+
+  let html = '<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">';
+  for (const school of results) {
+    html += `<h3 style=\"color: #007acc;\">${escapeHtml(school.name)}</h3>`;
+    html += `<p style=\"margin-top: 0; margin-bottom: 15px;\">${escapeHtml(school.result.explanation)}</p>`;
+  }
+  html += '</div>';
+  return html;
 }
 
 // ─────────────────────────────────────────────
@@ -290,17 +344,42 @@ emailForm.addEventListener("submit", function (e) {
   // Show loading spinner
   submitBtn.classList.add("loading");
 
-  // Build applicant from form data
+  // Build applicant and results
   const applicant = buildApplicant(eligibilityForm);
+  const schools = evaluateApplicant(applicant);
 
-  // Submit email silently with applicant details if possible
-  maybeSubmitEmail(email, applicant);
+  // Append region-specific notes inline to each school's explanation in email results
+  const ONTARIO_SCHOOLS = new Set(["UofT", "Western", "Queen's", "Ottawa", "TMU", "McMaster"]);
+  const BC_SCHOOLS = new Set(["UBC"]);
+
+  for (const school of schools) {
+    let regionNote = "";
+    if (ONTARIO_SCHOOLS.has(school.name)) {
+      regionNote += "This school gives strong preference to Ontario residents (approx. 95% seats).";
+      if (school.name === "Ottawa") {
+        regionNote += " 70% of seats are reserved for applicants from the Ottawa and surrounding regions.";
+      }
+      if (school.name === "TMU") {
+        regionNote += " Strong preference is given for applicants from the Peel/Brampton regions.";
+      }
+    } else if (BC_SCHOOLS.has(school.name)) {
+      regionNote += "90% of seats are reserved for applicants from BC.";
+    } else if (school.name === "UCalgary") {
+      regionNote += "UCalgary reserves roughly 85% of its seats for Alberta residents.";
+    }
+
+    if (regionNote) {
+      // Append inline with a space separator
+      school.result.explanation += " " + regionNote;
+    }
+  }
+
+  // Submit email silently with applicant details and modified results
+  maybeSubmitEmail(email, applicant, schools);
 
   // Calculate and display results after a short delay
   setTimeout(() => {
     try {
-      const applicant = buildApplicant(eligibilityForm);
-      const schools = evaluateApplicant(applicant);
       renderResults(schools, applicant.province);
     } catch (err) {
       console.error(err);
