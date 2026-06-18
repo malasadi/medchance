@@ -64,17 +64,35 @@ function uoftMcatFailures(applicant) {
 
 const CARS_BASELINE = { 132: 40, 131: 51, 130: 62, 129: 77, 128: 85, 127: 91, 126: 96, 125: 100 };
 
-function mcmasterRequiredCasper(gpa, cars) {
-  const clampedGpa = Math.max(0, Math.min(4.0, gpa));
-  const base = CARS_BASELINE[cars] ?? 100;
-  return Math.round(Math.min(100, base + 50 * (4.0 - clampedGpa)));
+// Helper to determine the CASPer percentile reduction based on the degree
+function getDegreeOffset(degree) {
+  if (!degree) return 0;
+
+  const normalized = degree.toLowerCase().trim();
+  if (normalized === "course" || normalized === "thesis") {
+    return 3.125; // 1% overall bonus converts to ~3.125 CASPer percentile points
+  } else if (normalized === "phd") {
+    return 12.5;   // 4% overall bonus converts to 12.5 CASPer percentile points
+  }
+  return 0; // "none" or any other unrecognized value
 }
 
-function checkInterviewInvite(gpa, cars, casperPercentile) {
+function mcmasterRequiredCasper(gpa, cars, degree = "none") {
+  const clampedGpa = Math.max(0, Math.min(4.0, gpa));
+  const base = CARS_BASELINE[cars] ?? 100;
+  const offset = getDegreeOffset(degree);
+
+  // Adjusted required CASPer is floored at 0 and capped at 100
+  return Math.round(Math.max(0, Math.min(100, base + 50 * (4.0 - clampedGpa) - offset)));
+}
+
+function checkInterviewInvite(gpa, cars, casperPercentile, degree = "none") {
   const clampedGpa = Math.max(0, Math.min(4.0, gpa));
   const clampedCasper = Math.max(0, Math.min(100, casperPercentile));
   const base = CARS_BASELINE[cars] ?? 100;
-  const required = Math.min(100, base + 50 * (4.0 - clampedGpa));
+  const offset = getDegreeOffset(degree);
+
+  const required = Math.max(0, Math.min(100, base + 50 * (4.0 - clampedGpa) - offset));
   return clampedCasper >= required ? "Yes" : "No";
 }
 
@@ -227,8 +245,13 @@ function evalMcmaster(applicant) {
   const { cgpa } = processGpa(applicant);
   const cars = applicant.mcat_sections.cars;
   const casper = applicant.casper_percentile;
-  const required = mcmasterRequiredCasper(cgpa, cars);
-  const result = checkInterviewInvite(cgpa, cars, casper);
+
+  // Access the graduate degree string from the applicant object.
+  // (Change "graduate_degree" to the exact property name used in your data structure)
+  const degree = applicant.graduate_degree || "none";
+
+  const required = mcmasterRequiredCasper(cgpa, cars, degree);
+  const result = checkInterviewInvite(cgpa, cars, casper, degree);
 
   if (result === "Yes") return {
     status: "Likely competitive",
