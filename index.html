@@ -46,10 +46,14 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="cgpa">cGPA <span class="hint">(0.00 – 4.00, exclude graduate grades)</span></label>
-            <input type="number" id="cgpa" name="cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.87" required />
-          </div>
+           <div class="form-group">
+             <label for="cgpa">cGPA <span class="hint">(0.00 – 4.00, exclude graduate grades)</span></label>
+             <input type="number" id="cgpa" name="cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.87" required />
+           </div>
+           <div class="form-group">
+             <label for="agpa">aGPA <span class="hint">(For SFU Medicine calculation, enter on 4.0 scale)</span></label>
+             <input type="number" id="agpa" name="agpa" step="0.01" min="0" max="4" placeholder="optional" />
+           </div>
 
           <div class="form-group">
             <label for="casper_quartile">CASPer Quartile</label>

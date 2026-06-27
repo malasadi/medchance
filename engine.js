@@ -357,8 +357,52 @@ function evaluateApplicant(applicant) {
     { name: "McMaster", key: "mcmaster", result: evalMcmaster(applicant) },
     { name: "UBC", key: "ubc", result: evalUBC(applicant) },
     { name: "UCalgary", key: "ucalgary", result: evalUCalgary(applicant) },
+    { name: "SFU", key: "sfu", result: evalSFU(applicant) },
   ];
+} // Reverted SFU position to last in evaluateApplicant
+
+
+// Added SFU to evaluateApplicant
+
+
+
+function evalSFU(applicant) {
+  const gpa = (applicant.aGpa !== null && applicant.aGpa !== undefined) ? applicant.aGpa : applicant.cgpa;
+  const mcatTotal = Object.values(applicant.mcat_sections).reduce((acc, val) => acc + val, 0);
+
+  if (gpa >= 3.6) {
+    return {
+      status: "Likely eligible",
+      type: "eligible",
+      explanation: `Your GPA of ${gpa.toFixed(2)} meets SFU Medicine's simple eligibility cutoff of 3.6 or above.`
+    };
+  }
+
+  if (mcatTotal >= 510) {
+    return {
+      status: "Likely eligible",
+      type: "eligible",
+      explanation: `Your total MCAT score of ${mcatTotal} meets SFU Medicine's simple eligibility cutoff of 510 or above.`
+    };
+  }
+
+  if (gpa >= 3.4 && mcatTotal >= 505) {
+    return {
+      status: "Likely eligible",
+      type: "eligible",
+      explanation: `Your GPA of ${gpa.toFixed(2)} and total MCAT score of ${mcatTotal} meet SFU Medicine's combined eligibility criteria (GPA ≥ 3.4 and MCAT ≥ 505).`
+    };
+  }
+
+  return {
+    status: "Likely not eligible",
+    type: "not-eligible",
+    explanation: `Your GPA of ${gpa.toFixed(2)} and total MCAT score of ${mcatTotal} do not meet SFU Medicine's interview eligibility criteria.`
+  };
 }
+
+// Added evalSFU function for new school SFU
+
 
 module.exports = {
   evalUoft,

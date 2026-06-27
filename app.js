@@ -89,6 +89,12 @@ function buildApplicant(form) {
   const data = new FormData(form);
   const applicant = {
     cgpa: parseFloat(data.get("cgpa")),
+    aGpa: (() => {
+      const val = data.get("agpa");
+      if (val === null || val.trim() === "") return null;
+      const parsed = parseFloat(val);
+      return isNaN(parsed) ? null : parsed;
+    })(),
     mcat_sections: {
       cp: parseInt(data.get("cp"), 10),
       cars: parseInt(data.get("cars"), 10),
@@ -137,6 +143,10 @@ function renderResults(schools, province = "") {
       if (province !== "British Columbia") {
         warning += `<p class=\"warning-warning\">90% of seats are reserved for applicants from BC.</p>`;
       }
+    }
+
+    if (name === "SFU") {
+      warning += `<p class=\"warning-warning\">SFU is currently only open to applicants from BC and the Canadian territories (Nunavut, Yukon, and Northwest Territories).</p>`;
     }
 
     if (name === "UCalgary") {
