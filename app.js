@@ -155,6 +155,12 @@ function renderResults(schools, province = "") {
       }
     }
 
+    if (name === "McGill") {
+      if (province !== "Quebec") {
+        warning += `<p class=\"warning-warning\">5 - 11 seats are available to out-of-province applicants per year, with the rest reserved for Quebec residents.</p>`;
+      }
+    }
+
     return `
     <article class=\"result-card ${result.type}\">
       <div class=\"result-card-header\">
